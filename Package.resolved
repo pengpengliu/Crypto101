@@ -1,0 +1,16 @@
+{
+  "object": {
+    "pins": [
+      {
+        "package": "OpenSSL",
+        "repositoryURL": "https://github.com/pengpengliu/OpenSSL.git",
+        "state": {
+          "branch": null,
+          "revision": "9875fbc9d93e7827341913f50c203f8acd7b98d9",
+          "version": "2.2.3"
+        }
+      }
+    ]
+  },
+  "version": 1
+}
