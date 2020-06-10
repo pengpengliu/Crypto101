@@ -36,7 +36,7 @@ public enum Hash {
         return Data(result)
     }
     
-    static func sha256ripemd160(_ data: Data) -> Data {
+    public static func sha256ripemd160(_ data: Data) -> Data {
         return ripemd160(sha256(data))
     }
     
