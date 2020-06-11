@@ -78,7 +78,7 @@ public enum ECC {
         public let priv: [UInt8]
         public var pub: [UInt8]
         
-        init(priv: [UInt8], curve: EllipticCurve = .secp256k1) {
+        public init(priv: [UInt8], curve: EllipticCurve = .secp256k1) {
             self.curve = curve
             self.priv = priv
             self.pub = Array(Key.computePublicKey(fromPrivateKey: Data(priv), compression: true))
