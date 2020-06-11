@@ -73,6 +73,13 @@ public enum ECC {
         case secp256k1
     }
     
+    public enum CryptoError: Error {
+        case signFailed
+        case noEnoughSpace
+        case signatureParseFailed
+        case publicKeyParseFailed
+    }
+    
     public struct Key {
         public let curve: EllipticCurve
         public let priv: [UInt8]
@@ -82,6 +89,10 @@ public enum ECC {
             self.curve = curve
             self.priv = priv
             self.pub = Array(Key.computePublicKey(fromPrivateKey: Data(priv), compression: true))
+        }
+        
+        public func sign(data: [UInt8]) throws -> [UInt8] {
+            return Array(try Key.signMessage(Data(data), withPrivateKey: Data(priv)))
         }
         
         private static func computePublicKey(fromPrivateKey privateKey: Data, compression: Bool) -> Data {
@@ -132,6 +143,44 @@ public enum ECC {
                 BN_bn2bin(n, &result)
                 return Data(result)
             }
+        }
+        
+        private static func signMessage(_ data: Data, withPrivateKey privateKey: Data) throws -> Data {
+            let ctx = secp256k1_context_create(UInt32(SECP256K1_CONTEXT_SIGN))!
+            defer { secp256k1_context_destroy(ctx) }
+            
+            let signature = UnsafeMutablePointer<secp256k1_ecdsa_signature>.allocate(capacity: 1)
+            defer { signature.deallocate() }
+            let status = data.withUnsafeBytes { (ptr: UnsafeRawBufferPointer) in
+                privateKey.withUnsafeBytes {
+                    secp256k1_ecdsa_sign(
+                        ctx,
+                        signature,
+                        ptr.bindMemory(to: UInt8.self).baseAddress.unsafelyUnwrapped,
+                        $0.bindMemory(to: UInt8.self).baseAddress.unsafelyUnwrapped,
+                        nil,
+                        nil
+                    )
+                }
+            }
+            guard status == 1 else { throw CryptoError.signFailed }
+            
+            let normalizedsig = UnsafeMutablePointer<secp256k1_ecdsa_signature>.allocate(capacity: 1)
+            defer { normalizedsig.deallocate() }
+            secp256k1_ecdsa_signature_normalize(ctx, normalizedsig, signature)
+            
+            var length: size_t = 128
+            var der = Data(count: length)
+            guard der.withUnsafeMutableBytes({
+                return secp256k1_ecdsa_signature_serialize_der(
+                    ctx,
+                    $0.bindMemory(to: UInt8.self).baseAddress.unsafelyUnwrapped,
+                    &length,
+                    normalizedsig
+                ) }) == 1 else { throw CryptoError.noEnoughSpace }
+            der.count = length
+            
+            return der
         }
     }
 }
