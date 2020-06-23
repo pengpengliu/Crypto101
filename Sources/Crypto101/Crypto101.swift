@@ -28,7 +28,7 @@ public enum Hash {
     }
     
     public static func hmacsha512(_ data: Data, key: Data) throws -> Data {
-        return try Data(HMAC(key: key.bytes, variant: .sha256).authenticate(data.bytes))
+        return try Data(HMAC(key: key.bytes, variant: .sha512).authenticate(data.bytes))
     }
 }
 
