@@ -26,6 +26,10 @@ public enum Hash {
     public static func sha256ripemd160(_ data: Data) -> Data {
         return ripemd160(sha256(data))
     }
+    
+    public static func hmacsha512(_ data: Data, key: Data) throws -> Data {
+        return try Data(HMAC(key: key.bytes, variant: .sha256).authenticate(data.bytes))
+    }
 }
 
 public enum ECC {
