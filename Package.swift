@@ -12,9 +12,7 @@ let package = Package(
             targets: ["Crypto101"]),
     ],
     dependencies: [
-        // Dependencies declare other packages that this package depends on.
-        // .package(url: /* package url */, from: "1.0.0"),
-        .package(url: "https://github.com/pengpengliu/OpenSSL.git", .upToNextMinor(from: "2.2.2")),
+        .package(url: "https://github.com/krzyzanowskim/CryptoSwift", .upToNextMinor(from: "1.3.1")),
         .package(name: "secp256k1", url: "https://github.com/Boilertalk/secp256k1.swift.git", from: "0.1.0")
     ],
     targets: [
@@ -22,7 +20,7 @@ let package = Package(
         // Targets can depend on other targets in this package, and on products in packages which this package depends on.
         .target(
             name: "Crypto101",
-            dependencies: ["OpenSSL", "secp256k1"]),
+            dependencies: ["CryptoSwift", "secp256k1"]),
         .testTarget(
             name: "Crypto101Tests",
             dependencies: ["Crypto101"]
