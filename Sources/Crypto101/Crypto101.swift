@@ -59,7 +59,7 @@ public enum ECC {
             return Array(try Key.signMessage(Data(data), withPrivateKey: Data(priv)))
         }
         
-        private static func computePublicKey(fromPrivateKey privateKey: Data, compression: Bool) -> Data {
+        public static func computePublicKey(fromPrivateKey privateKey: Data, compression: Bool) -> Data {
             let ctx = secp256k1_context_create(UInt32(SECP256K1_CONTEXT_SIGN) | UInt32(SECP256K1_CONTEXT_VERIFY))!
 
             // *** Generate public key ***
@@ -81,7 +81,7 @@ public enum ECC {
             return Data(result)
         }
         
-        private static func signMessage(_ data: Data, withPrivateKey privateKey: Data) throws -> Data {
+        public static func signMessage(_ data: Data, withPrivateKey privateKey: Data) throws -> Data {
             let ctx = secp256k1_context_create(UInt32(SECP256K1_CONTEXT_SIGN))!
             defer { secp256k1_context_destroy(ctx) }
 
