@@ -55,8 +55,34 @@ public enum ECC {
             self.pub = Array(Key.computePublicKey(fromPrivateKey: Data(priv), compression: true))
         }
         
-        public func sign(data: [UInt8]) throws -> [UInt8] {
-            return Array(try Key.signMessage(Data(data), withPrivateKey: Data(priv)))
+        public func sign(hash: [UInt8]) throws -> Signature {
+            let ctx = secp256k1_context_create(UInt32(SECP256K1_CONTEXT_SIGN))!
+            defer { secp256k1_context_destroy(ctx) }
+            
+            guard hash.count == 32 else {
+                throw CryptoError.signFailed
+            }
+            guard let sig = malloc(MemoryLayout<secp256k1_ecdsa_recoverable_signature>.size)?.assumingMemoryBound(to: secp256k1_ecdsa_recoverable_signature.self) else {
+                throw CryptoError.signFailed
+            }
+            defer {
+                free(sig)
+            }
+            var seckey = priv
+
+            guard secp256k1_ecdsa_sign_recoverable(ctx, sig, hash, &seckey, nil, nil) == 1 else {
+                throw CryptoError.signFailed
+            }
+
+            var output64 = [UInt8](repeating: 0, count: 64)
+            var recid: Int32 = 0
+            secp256k1_ecdsa_recoverable_signature_serialize_compact(ctx, &output64, &recid, sig)
+
+            guard recid == 0 || recid == 1 else {
+                // Well I guess this one should never happen but to avoid bigger problems...
+                throw CryptoError.signFailed
+            }
+            return Signature(r: Array(output64[0..<32]), s: Array(output64[32..<64]), recoveryParam: UInt(recid))
         }
         
         public static func computePublicKey(fromPrivateKey privateKey: Data, compression: Bool) -> Data {

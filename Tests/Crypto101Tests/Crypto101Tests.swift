@@ -16,14 +16,17 @@ final class Crypto101Tests: XCTestCase {
     func testECC() {
         let key = ECC.Key(priv: [UInt8](hex: "e580512c800c6de3bd5e65695b4cab739211b7ac41ffc2991b0cf75c4d3ccbdf"))
         XCTAssertEqual(key.pub.toHexString(), "0254dec37f0858dd993798f8b31ba912eb3cee803ac4209596cc79c804a2f3c201")
-        // 54dec37f0858dd993798f8b31ba912eb3cee803ac4209596cc79c804a2f3c201c5c8c530ebd8af6cce71d1b2250dee29e660b1d10140226a7f5cbff46228de60
     }
     
     func testSign() {
         let hash: [UInt8] = Array(repeating: 1, count: 32)
+        print(hash.toHexString())
         let key = ECC.Key(priv: [UInt8](hex: "e580512c800c6de3bd5e65695b4cab739211b7ac41ffc2991b0cf75c4d3ccbdf"))
-        let signature = "304402203b63adb7a4d0f364269c7008cbb5647cbe825b3986ad7d245927ec2be78fed9102207cc0bcc62dd9add67d27c590e978d5777591e1d7e738e3b05844e968164041a3"
-        XCTAssertEqual(Data(try key.sign(data: hash)).toHexString(), signature)
+        let signature = try? key.sign(hash: hash)
+        XCTAssertEqual("3b63adb7a4d0f364269c7008cbb5647cbe825b3986ad7d245927ec2be78fed91", signature?.r.toHexString())
+        XCTAssertEqual("7cc0bcc62dd9add67d27c590e978d5777591e1d7e738e3b05844e968164041a3", signature?.s.toHexString())
+        XCTAssertEqual(0, signature?.recoveryParam)
+        XCTAssertEqual("304402203b63adb7a4d0f364269c7008cbb5647cbe825b3986ad7d245927ec2be78fed9102207cc0bcc62dd9add67d27c590e978d5777591e1d7e738e3b05844e968164041a3", signature?.toDER().toHexString())
     }
 
     static var allTests = [
